@@ -2,11 +2,11 @@
 
 
 
-\*\*Lost Item Reporting, Matching, and Verification System for an Amusement Park\*\*
+\"Lost Item Reporting, Matching, and Verification System for an Amusement Park\"
 
 
 
-\## Project Overview
+\- Project Overview
 
 
 
@@ -14,7 +14,7 @@ Claimsure is a desktop application project designed to help users report lost an
 
 
 
-\## Planned Technologies
+\- Planned Technologies
 
 
 
