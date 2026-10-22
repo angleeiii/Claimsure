@@ -37,3 +37,65 @@ def _calculate_match_score(lost, found):
             pass
     score += _text_match_score(lost["description"], found["description"]) * 5
     return round(score, 2)
+
+def generate_possible_matches(cursor):
+    cursor.execute(
+        "SELECT lost_item_id, user_id, item_name, category, description, color, location_lost, date_lost "
+        "FROM lost_items WHERE status IN ('ACTIVE','MATCHED')"
+    )
+    lost_rows = cursor.fetchall()
+    cursor.execute(
+        "SELECT found_item_id, item_name, category, description, color, location_found, date_found "
+        "FROM found_items WHERE status IN ('ACTIVE','MATCHED')"
+    )
+    found_rows = cursor.fetchall()
+    for lost in lost_rows:
+        ld = {
+            "id": lost[0],
+            "user_id": lost[1],
+            "item_name": lost[2],
+            "category": lost[3],
+            "description": lost[4],
+            "color": lost[5],
+            "location": lost[6],
+            "date": lost[7],
+        }
+        for found in found_rows:
+            fd = {
+                "id": found[0],
+                "item_name": found[1],
+                "category": found[2],
+                "description": found[3],
+                "color": found[4],
+                "location": found[5],
+                "date": found[6],
+            }
+            score = _calculate_match_score(ld, fd)
+            if score < 40:
+                continue
+            cursor.execute(
+                "SELECT match_id FROM matches WHERE lost_item_id=%s AND found_item_id=%s LIMIT 1",
+                (ld["id"], fd["id"]),
+            )
+            existing = cursor.fetchone()
+            if existing:
+                cursor.execute(
+                    "UPDATE matches SET match_score=%s WHERE match_id=%s AND match_status='POSSIBLE'",
+                    (score, existing[0]),
+                )
+            else:
+                cursor.execute(
+                    "INSERT INTO matches (lost_item_id, found_item_id, match_score, match_status) "
+                    "VALUES (%s, %s, %s, 'POSSIBLE')",
+                    (ld["id"], fd["id"], score),
+                )
+                cursor.execute(
+                    "INSERT INTO notifications (user_id, title, message, notification_type) "
+                    "VALUES (%s, %s, %s, %s)",
+                    (
+                        ld["user_id"],
+                        "Possible Match Found",
+                        f"A possible match was found for your lost item: {ld['item_name']}.",
+                        "MATCH",
+                    ),
+                )
