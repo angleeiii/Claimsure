@@ -685,3 +685,772 @@ def open_user_dashboard(user_id, full_name):
 
         items_frame = results_frame
         image_references = []
+
+  def show_item_details(item):
+            item_type = item[0]
+            (
+                _,
+                item_id,
+                item_name,
+                category,
+                description,
+                color,
+                location,
+                date,
+                status,
+                photo_path,
+            ) = item
+
+            detail_window = ctk.CTkToplevel(window)
+            detail_window.title(f"Claimsure | {item_name}")
+            detail_window.geometry("380x310")
+            detail_window.minsize(380, 310)
+            detail_window.resizable(False, False)
+            detail_window.transient(window)
+            detail_window.grab_set()
+
+            detail_window.update_idletasks()
+            win_w, win_h = 380, 310
+            screen_w = detail_window.winfo_screenwidth()
+            screen_h = detail_window.winfo_screenheight()
+            pos_x = max((screen_w - win_w) // 2, 0)
+            pos_y = max((screen_h - win_h) // 2, 0)
+            detail_window.geometry(f"{win_w}x{win_h}+{pos_x}+{pos_y}")
+
+            detail_window.grid_columnconfigure(0, weight=1)
+            detail_window.grid_rowconfigure(1, weight=1)
+
+            header_frame = ctk.CTkFrame(detail_window, fg_color=PRIMARY, corner_radius=0)
+            header_frame.grid(row=0, column=0, sticky="ew")
+            header_frame.grid_columnconfigure(0, weight=1)
+
+            header_left = ctk.CTkFrame(header_frame, fg_color="transparent")
+            header_left.grid(row=0, column=0, sticky="w", padx=16, pady=10)
+
+            type_color = "#FDE68A" if item_type == "LOST" else "#A7F3D0"
+            ctk.CTkLabel(
+                header_left, text=f"{item_type} ITEM",
+                font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
+                text_color=type_color,
+            ).pack(anchor="w")
+            ctk.CTkLabel(
+                header_left, text=item_name,
+                font=ctk.CTkFont(family="Segoe UI", size=16, weight="bold"),
+                text_color="white",
+            ).pack(anchor="w", pady=(2, 0))
+
+            ctk.CTkButton(
+                header_frame, text="✕", width=28, height=28, corner_radius=14,
+                fg_color="transparent", hover_color=PRIMARY_HOVER, text_color="white",
+                font=ctk.CTkFont(size=13, weight="bold"),
+                command=detail_window.destroy,
+            ).grid(row=0, column=1, padx=12, pady=10)
+
+            body = ctk.CTkFrame(detail_window, fg_color=BG)
+            body.grid(row=1, column=0, sticky="nsew")
+            body.grid_columnconfigure(0, weight=1)
+            body.grid_columnconfigure(1, weight=1)
+            body.grid_rowconfigure(0, weight=1)
+
+            photo_card = ctk.CTkFrame(
+                body, fg_color="white", corner_radius=16,
+                border_width=1, border_color=BORDER,
+            )
+            photo_card.grid(row=0, column=0, sticky="nsew", padx=(10, 5), pady=10)
+            photo_card.grid_rowconfigure(1, weight=1)
+            photo_card.grid_columnconfigure(0, weight=1)
+
+            ctk.CTkLabel(
+                photo_card, text="ITEM PHOTO",
+                font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+                text_color=TEXT_SUB,
+            ).grid(row=0, column=0, sticky="w", padx=10, pady=(10, 5))
+
+            image_container = ctk.CTkFrame(photo_card, fg_color="#F8FAFC", corner_radius=12)
+            image_container.grid(row=1, column=0, sticky="nsew", padx=10, pady=(0, 10))
+            image_container.grid_columnconfigure(0, weight=1)
+            image_container.grid_rowconfigure(0, weight=1)
+
+            if photo_path and os.path.exists(photo_path):
+                try:
+                    image = Image.open(photo_path).convert("RGB")
+                    image.thumbnail((135, 135), Image.Resampling.LANCZOS)
+                    photo = ImageTk.PhotoImage(image)
+                    photo_label = ctk.CTkLabel(image_container, image=photo, text="")
+                    photo_label.image = photo
+                    photo_label.grid(row=0, column=0, padx=8, pady=8)
+                except Exception:
+                    ctk.CTkLabel(
+                        image_container, text="Unable to display image",
+                        font=ctk.CTkFont(family="Segoe UI", size=13), text_color=TEXT_SUB,
+                    ).grid(row=0, column=0)
+            else:
+                ctk.CTkLabel(
+                    image_container, text="No photo available",
+                    font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"),
+                    text_color=TEXT_SUB,
+                ).grid(row=0, column=0)
+
+            details_card = ctk.CTkFrame(
+                body, fg_color="white", corner_radius=16,
+                border_width=1, border_color=BORDER,
+            )
+            details_card.grid(row=0, column=1, sticky="nsew", padx=(5, 10), pady=10)
+            details_card.grid_columnconfigure(0, weight=1)
+            details_card.grid_rowconfigure(4, weight=1)
+
+            ctk.CTkLabel(
+                details_card, text="ITEM INFORMATION",
+                font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+                text_color=TEXT_SUB,
+            ).grid(row=0, column=0, sticky="w", padx=10, pady=(10, 5))
+
+            status_text = str(status).replace("_", " ").title()
+            status_fg = "#DCFCE7" if status == "ACTIVE" else "#FEF3C7"
+            status_text_color = "#166534" if status == "ACTIVE" else "#92400E"
+
+            status_row = ctk.CTkFrame(details_card, fg_color="transparent")
+            status_row.grid(row=1, column=0, sticky="ew", padx=10, pady=(0, 6))
+            status_row.grid_columnconfigure(0, weight=1)
+
+            ctk.CTkLabel(
+                status_row, text="Status",
+                font=ctk.CTkFont(family="Segoe UI", size=11), text_color=TEXT_SUB,
+            ).grid(row=0, column=0, sticky="w")
+            ctk.CTkLabel(
+                status_row, text=status_text,
+                font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+                text_color=status_text_color, fg_color=status_fg,
+                corner_radius=8, padx=10, pady=4,
+            ).grid(row=0, column=1, sticky="e")
+
+            quick_info = ctk.CTkFrame(details_card, fg_color="transparent")
+            quick_info.grid(row=2, column=0, sticky="ew", padx=10, pady=(0, 5))
+            quick_info.grid_columnconfigure(0, weight=1)
+            quick_info.grid_columnconfigure(1, weight=1)
+
+            def info_box(parent, row, column, title, value):
+                box = ctk.CTkFrame(parent, fg_color="#F8FAFC", corner_radius=10)
+                box.grid(
+                    row=row, column=column, sticky="ew",
+                    padx=(0, 5) if column == 0 else (5, 0), pady=4,
+                )
+                ctk.CTkLabel(
+                    box, text=title.upper(),
+                    font=ctk.CTkFont(family="Segoe UI", size=8, weight="bold"),
+                    text_color=TEXT_SUB,
+                ).pack(anchor="w", padx=10, pady=(8, 0))
+                ctk.CTkLabel(
+                    box, text=str(value) if value else "Not specified",
+                    font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
+                    text_color=TEXT_MAIN, wraplength=125, justify="left",
+                ).pack(anchor="w", padx=10, pady=(1, 8))
+
+            info_box(quick_info, 0, 0, "Category", category)
+            info_box(quick_info, 0, 1, "Color", color or "Not specified")
+            info_box(quick_info, 1, 0, "Location", location or "Not specified")
+            info_box(quick_info, 1, 1, "Date", date or "Not specified")
+
+            ctk.CTkLabel(
+                details_card, text="DESCRIPTION",
+                font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"),
+                text_color=TEXT_SUB,
+            ).grid(row=3, column=0, sticky="nw", padx=20, pady=(2, 2))
+
+            description_box = ctk.CTkTextbox(
+                details_card, height=65, corner_radius=10,
+                border_width=1, border_color=BORDER, fg_color="#F8FAFC",
+                font=ctk.CTkFont(family="Segoe UI", size=12), wrap="word",
+            )
+            description_box.grid(row=4, column=0, sticky="nsew", padx=10, pady=(0, 8))
+            description_box.insert("1.0", description or "No description provided.")
+            description_box.configure(state="disabled")
+
+            footer = ctk.CTkFrame(detail_window, fg_color="white", corner_radius=0)
+            footer.grid(row=2, column=0, sticky="ew")
+            ctk.CTkButton(
+                footer, text="CLOSE", width=90, height=30, corner_radius=8,
+                fg_color=INDIGO, hover_color=INDIGO_HOVER,
+                font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"),
+                command=detail_window.destroy,
+            ).pack(pady=8)
+
+            detail_window.bind("<Escape>", lambda event: detail_window.destroy())
+
+        def load_items():
+            for widget in items_frame.winfo_children():
+                widget.destroy()
+            image_references.clear()
+
+            search_text = search_entry.get().strip()
+            selected_type = type_var.get()
+
+            connection = connect_database()
+            if connection is None:
+                return
+
+            cursor = connection.cursor()
+            try:
+                cursor.execute("""
+                    SELECT lost_item_id, item_name, category, description, color,
+                           location_lost, date_lost, status, photo_path
+                    FROM lost_items WHERE status = 'ACTIVE'
+                """)
+                lost_items = cursor.fetchall()
+
+                cursor.execute("""
+                    SELECT found_item_id, item_name, category, description, color,
+                           location_found, date_found, status, photo_path
+                    FROM found_items WHERE status = 'ACTIVE'
+                """)
+                found_items = cursor.fetchall()
+
+                cursor.close()
+                connection.close()
+            except Exception as error:
+                messagebox.showerror("Database Error", f"Unable to load items.\n\n{error}")
+                cursor.close()
+                connection.close()
+                return
+
+            all_items = []
+            if selected_type in ("ALL", "LOST"):
+                for item in lost_items:
+                    all_items.append(("LOST",) + item)
+            if selected_type in ("ALL", "FOUND"):
+                for item in found_items:
+                    all_items.append(("FOUND",) + item)
+
+            if search_text:
+                search_text = search_text.lower()
+                filtered_items = []
+                for item in all_items:
+                    (
+                        item_type, item_id, item_name, category, description,
+                        color, location, date, status, photo_path,
+                    ) = item
+                    searchable_text = (
+                        f"{item_name} {category} {description or ''} "
+                        f"{color or ''} {location}"
+                    ).lower()
+                    if search_text in searchable_text:
+                        filtered_items.append(item)
+                all_items = filtered_items
+
+            if not all_items:
+                ctk.CTkLabel(
+                    items_frame, text="No items found.",
+                    font=ctk.CTkFont(family="Segoe UI", size=13),
+                ).pack(pady=50)
+                return
+
+            for item in all_items:
+                (
+                    item_type, item_id, item_name, category, description,
+                    color, location, date, status, photo_path,
+                ) = item
+
+                card = ctk.CTkFrame(items_frame, corner_radius=12, fg_color=BG)
+                card.pack(fill="x", padx=10, pady=8)
+
+                if photo_path and os.path.exists(photo_path):
+                    try:
+                        image = Image.open(photo_path)
+                        image.thumbnail((100, 80))
+                        photo = ImageTk.PhotoImage(image)
+                        image_label = ctk.CTkLabel(card, image=photo, text="")
+                        image_label.image = photo
+                        image_label.pack(side="left", padx=10)
+                        image_references.append(photo)
+                    except Exception:
+                        ctk.CTkLabel(card, text="No Image").pack(side="left", padx=20)
+                else:
+                    ctk.CTkLabel(card, text="No Image").pack(side="left", padx=20)
+
+                info_frame = ctk.CTkFrame(card, fg_color="transparent")
+                info_frame.pack(side="left", fill="x", expand=True)
+
+                ctk.CTkLabel(
+                    info_frame, text=f"{item_type} ITEM",
+                    font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+                    text_color=PRIMARY,
+                ).pack(anchor="w")
+                ctk.CTkLabel(
+                    info_frame, text=item_name,
+                    font=ctk.CTkFont(family="Segoe UI", size=15, weight="bold"),
+                ).pack(anchor="w")
+                ctk.CTkLabel(
+                    info_frame,
+                    text=f"{category} | {color or 'Color not specified'}",
+                    font=ctk.CTkFont(family="Segoe UI", size=12),
+                ).pack(anchor="w")
+                ctk.CTkLabel(
+                    info_frame,
+                    text=f"Location: {location} | Date: {date}",
+                    font=ctk.CTkFont(family="Segoe UI", size=12),
+                ).pack(anchor="w")
+
+                view_button = ctk.CTkButton(
+                    card, text="VIEW DETAILS", width=140, height=34, corner_radius=10,
+                    fg_color=PRIMARY_LIGHT, hover_color=PRIMARY_HOVER,
+                    font=ctk.CTkFont(size=12),
+                    command=lambda current_item=item: show_item_details(current_item),
+                )
+                view_button.pack(side="right", padx=10)
+
+        search_button = ctk.CTkButton(
+            search_frame, text="SEARCH", width=120, height=38, corner_radius=10,
+            fg_color=INDIGO, hover_color=INDIGO_HOVER,
+            font=ctk.CTkFont(size=13, weight="bold"), command=load_items,
+        )
+        search_button.grid(row=0, column=3, padx=(8, 20), pady=16)
+
+        load_items()
+
+    def show_claims():
+        clear_content()
+        header_label.configure(text="My Claims")
+        set_active("claims")
+
+        ctk.CTkLabel(
+            content,
+            text="Review possible matches and track your submitted claims.",
+            font=ctk.CTkFont(family="Segoe UI", size=13),
+            text_color=TEXT_SUB,
+        ).grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 15))
+
+        content.grid_columnconfigure(0, weight=3)
+        content.grid_columnconfigure(1, weight=2)
+        content.grid_rowconfigure(1, weight=3)
+        content.grid_rowconfigure(2, weight=2)
+
+        matches_card = section_card(content)
+        matches_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10), pady=(0, 15))
+
+        ctk.CTkLabel(
+            matches_card, text="Possible Matches",
+            font=ctk.CTkFont(family="Segoe UI", size=15, weight="bold"),
+            text_color=TEXT_MAIN,
+        ).pack(anchor="w", padx=20, pady=(15, 3))
+        ctk.CTkLabel(
+            matches_card,
+            text="Select a possible match below if you believe the found item belongs to you.",
+            font=ctk.CTkFont(family="Segoe UI", size=11),
+            text_color=TEXT_SUB, wraplength=380, justify="left",
+        ).pack(anchor="w", padx=20, pady=(0, 10))
+
+        table_frame = ctk.CTkFrame(matches_card, fg_color=CARD)
+        table_frame.pack(fill="both", expand=True, padx=20, pady=(0, 15))
+
+        columns = ("match_id", "lost_item", "found_item", "score")
+        tree = ttk.Treeview(table_frame, columns=columns, show="headings", height=6)
+        tree.heading("match_id", text="ID")
+        tree.heading("lost_item", text="Your Lost Item")
+        tree.heading("found_item", text="Found Item")
+        tree.heading("score", text="Score")
+        tree.column("match_id", width=45, anchor="center")
+        tree.column("lost_item", width=150)
+        tree.column("found_item", width=150)
+        tree.column("score", width=70, anchor="center")
+
+        scrollbar = ttk.Scrollbar(table_frame, orient="vertical", command=tree.yview)
+        tree.configure(yscrollcommand=scrollbar.set)
+        tree.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        claim_card = section_card(content)
+        claim_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0), pady=(0, 15))
+
+        button_frame = ctk.CTkFrame(claim_card, fg_color="transparent")
+        button_frame.pack(side="bottom", pady=15, fill="x", padx=20)
+        button_frame.grid_columnconfigure((0, 1), weight=1)
+
+        ctk.CTkLabel(
+            claim_card, text="Submit Claim",
+            font=ctk.CTkFont(family="Segoe UI", size=15, weight="bold"),
+            text_color=TEXT_MAIN,
+        ).pack(anchor="w", padx=20, pady=(15, 3))
+        ctk.CTkLabel(
+            claim_card,
+            text="Provide information that can help the administrator verify your ownership.",
+            font=ctk.CTkFont(family="Segoe UI", size=11),
+            text_color=TEXT_SUB, wraplength=260, justify="left",
+        ).pack(anchor="w", padx=20, pady=(0, 10))
+
+        selected_match_id = [None]
+        selected_label = ctk.CTkLabel(
+            claim_card, text="No possible match selected.",
+            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+            text_color=TEXT_MAIN, fg_color="#EEF2F7", corner_radius=8,
+            anchor="w", wraplength=280, justify="left",
+        )
+        selected_label.pack(fill="x", padx=20, pady=(0, 12), ipady=8)
+
+        ctk.CTkLabel(
+            claim_card, text="Proof / Ownership Details",
+            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+            text_color=TEXT_MAIN,
+        ).pack(anchor="w", padx=20)
+
+        proof_text = ctk.CTkTextbox(claim_card, height=90, corner_radius=10, font=ctk.CTkFont(size=12))
+        proof_text.pack(fill="x", padx=20, pady=(5, 5))
+
+        ctk.CTkLabel(
+            claim_card,
+            text="Example: Describe unique marks, contents, serial numbers, or other identifying details.",
+            font=ctk.CTkFont(family="Segoe UI", size=10),
+            text_color=TEXT_SUB, wraplength=280, justify="left",
+        ).pack(anchor="w", padx=20)
+
+        def load_matches():
+            for item in tree.get_children():
+                tree.delete(item)
+
+            connection = connect_database()
+            if connection is None:
+                return
+
+            cursor = connection.cursor()
+            try:
+                generate_possible_matches(cursor)
+                connection.commit()
+            except Exception as error:
+                connection.rollback()
+                cursor.close()
+                connection.close()
+                messagebox.showerror(
+                    "Matching Error", f"Unable to generate possible matches.\n\n{error}",
+                )
+                return
+
+            query = """
+                SELECT m.match_id, l.item_name, f.item_name, m.match_score
+                FROM matches m
+                INNER JOIN lost_items l ON m.lost_item_id = l.lost_item_id
+                INNER JOIN found_items f ON m.found_item_id = f.found_item_id
+                WHERE l.user_id = %s AND m.match_status = 'POSSIBLE'
+                ORDER BY m.match_score DESC
+            """
+            try:
+                cursor.execute(query, (user_id,))
+                matches = cursor.fetchall()
+                cursor.close()
+                connection.close()
+                for match in matches:
+                    tree.insert("", "end", values=(match[0], match[1], match[2], f"{match[3]}%"))
+            except Exception as error:
+                cursor.close()
+                connection.close()
+                messagebox.showerror(
+                    "Database Error", f"Unable to load possible matches.\n\n{error}",
+                )
+
+        def select_match(event=None):
+            selected = tree.selection()
+            if not selected:
+                return
+            item = tree.item(selected[0])
+            values = item["values"]
+            if not values:
+                return
+            match_id = values[0]
+            selected_match_id[0] = match_id
+            selected_label.configure(
+                text=(
+                    f"Selected Match #{match_id}  ·  Score: {values[3]}\n"
+                    f"Lost: {values[1]}  →  Found: {values[2]}"
+                )
+            )
+
+        tree.bind("<<TreeviewSelect>>", select_match)
+
+        def submit_claim():
+            match_id = selected_match_id[0]
+            if match_id is None:
+                messagebox.showwarning("No Match Selected", "Please select a possible match first.")
+                return
+
+            proof_description = proof_text.get("1.0", "end").strip()
+            if not proof_description:
+                messagebox.showwarning("Missing Information", "Please enter proof or ownership details.")
+                return
+
+            connection = connect_database()
+            if connection is None:
+                return
+
+            cursor = connection.cursor()
+            try:
+                cursor.execute(
+                    "SELECT found_item_id FROM matches WHERE match_id = %s AND match_status = 'POSSIBLE'",
+                    (match_id,),
+                )
+                match = cursor.fetchone()
+                if not match:
+                    messagebox.showerror("Invalid Match", "This possible match is no longer available.")
+                    cursor.close()
+                    connection.close()
+                    return
+
+                found_item_id = match[0]
+                cursor.execute(
+                    "SELECT claim_id FROM claims WHERE found_item_id = %s AND user_id = %s AND claim_status = 'PENDING'",
+                    (found_item_id, user_id),
+                )
+                if cursor.fetchone():
+                    messagebox.showwarning(
+                        "Claim Already Submitted",
+                        "You already have a pending claim for this item.",
+                    )
+                    cursor.close()
+                    connection.close()
+                    return
+
+                cursor.execute(
+                    "INSERT INTO claims (found_item_id, user_id, proof_description, claim_status) "
+                    "VALUES (%s, %s, %s, 'PENDING')",
+                    (found_item_id, user_id, proof_description),
+                )
+                connection.commit()
+
+                messagebox.showinfo(
+                    "Claim Submitted",
+                    "Your claim has been submitted successfully!\n\n"
+                    "An administrator will review your claim.",
+                )
+                proof_text.delete("1.0", "end")
+                selected_match_id[0] = None
+                selected_label.configure(text="No possible match selected.")
+                tree.selection_remove(tree.selection())
+                cursor.close()
+                connection.close()
+                load_matches()
+                load_claims()
+            except Exception as error:
+                connection.rollback()
+                cursor.close()
+                connection.close()
+                messagebox.showerror("Claim Error", f"Unable to submit claim.\n\n{error}")
+
+        history_card = section_card(content)
+        history_card.grid(row=2, column=0, columnspan=2, sticky="nsew")
+
+        ctk.CTkLabel(
+            history_card, text="My Claim History",
+            font=ctk.CTkFont(family="Segoe UI", size=15, weight="bold"),
+            text_color=TEXT_MAIN,
+        ).pack(anchor="w", padx=20, pady=(15, 3))
+        ctk.CTkLabel(
+            history_card,
+            text="Track the status of your submitted claims. Double-click a row to view the admin message.",
+            font=ctk.CTkFont(family="Segoe UI", size=11),
+            text_color=TEXT_SUB,
+        ).pack(anchor="w", padx=20, pady=(0, 10))
+
+        history_table_frame = ctk.CTkFrame(history_card, fg_color=CARD)
+        history_table_frame.pack(fill="both", expand=True, padx=20, pady=(0, 15))
+
+        history_columns = ("claim_id", "item", "status", "message", "submitted")
+        history_tree = ttk.Treeview(
+            history_table_frame, columns=history_columns, show="headings", height=5,
+        )
+        history_tree.heading("claim_id", text="Claim ID")
+        history_tree.heading("item", text="Found Item")
+        history_tree.heading("status", text="Claim Status")
+        history_tree.heading("message", text="Admin Message")
+        history_tree.heading("submitted", text="Submitted")
+        history_tree.column("claim_id", width=80, anchor="center")
+        history_tree.column("item", width=200)
+        history_tree.column("status", width=120, anchor="center")
+        history_tree.column("message", width=350)
+        history_tree.column("submitted", width=150, anchor="center")
+
+        history_scrollbar = ttk.Scrollbar(
+            history_table_frame, orient="vertical", command=history_tree.yview,
+        )
+        history_tree.configure(yscrollcommand=history_scrollbar.set)
+        history_tree.pack(side="left", fill="both", expand=True)
+        history_scrollbar.pack(side="right", fill="y")
+
+        def show_claim_message(event=None):
+            selected = history_tree.selection()
+            if not selected:
+                return
+            values = history_tree.item(selected[0])["values"]
+            if not values:
+                return
+            message = values[3] if len(values) > 3 else ""
+            if message:
+                messagebox.showinfo("Administrator Message", message)
+            elif str(values[2]).upper() == "PENDING":
+                messagebox.showinfo(
+                    "Claim Status",
+                    "Your claim is still pending review by an administrator.",
+                )
+            else:
+                messagebox.showinfo(
+                    "Claim Status",
+                    "No administrator message is available for this claim.",
+                )
+
+        history_tree.bind("<Double-1>", show_claim_message)
+
+        def load_claims():
+            for item in history_tree.get_children():
+                history_tree.delete(item)
+
+            connection = connect_database()
+            if connection is None:
+                return
+
+            cursor = connection.cursor()
+            query = """
+                SELECT c.claim_id, f.item_name, c.claim_status,
+                       COALESCE(v.remarks, '') AS admin_message, c.submitted_at
+                FROM claims c
+                INNER JOIN found_items f ON c.found_item_id = f.found_item_id
+                LEFT JOIN verifications v ON v.verification_id = (
+                    SELECT MAX(v2.verification_id)
+                    FROM verifications v2 WHERE v2.claim_id = c.claim_id
+                )
+                WHERE c.user_id = %s
+                ORDER BY c.submitted_at DESC
+            """
+            try:
+                cursor.execute(query, (user_id,))
+                claims = cursor.fetchall()
+                cursor.close()
+                connection.close()
+                for claim in claims:
+                    history_tree.insert(
+                        "", "end",
+                        values=(claim[0], claim[1], claim[2], claim[3], claim[4]),
+                    )
+            except Exception as error:
+                cursor.close()
+                connection.close()
+                messagebox.showerror(
+                    "Database Error", f"Unable to load claim history.\n\n{error}",
+                )
+
+        submit_button = ctk.CTkButton(
+            button_frame, text="SUBMIT CLAIM", height=44, corner_radius=12,
+            fg_color=PRIMARY_LIGHT, hover_color=PRIMARY_HOVER,
+            font=ctk.CTkFont(size=13, weight="bold"), command=submit_claim,
+        )
+        submit_button.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+
+        refresh_button = ctk.CTkButton(
+            button_frame, text="REFRESH", height=44, corner_radius=12,
+            fg_color=NEUTRAL, hover_color=NEUTRAL_HOVER,
+            font=ctk.CTkFont(size=13),
+            command=lambda: (load_matches(), load_claims()),
+        )
+        refresh_button.grid(row=0, column=1, sticky="ew", padx=(5, 0))
+
+        load_matches()
+        load_claims()
+
+    def show_notifications():
+        clear_content()
+        header_label.configure(text="Notifications")
+        set_active("notifications")
+
+        ctk.CTkLabel(
+            content,
+            text="View updates about possible matches and claim decisions.",
+            font=ctk.CTkFont(family="Segoe UI", size=13),
+            text_color=TEXT_SUB,
+        ).grid(row=0, column=0, sticky="w", pady=(0, 15))
+
+        card = section_card(content)
+        card.grid(row=1, column=0, sticky="nsew")
+        content.grid_rowconfigure(1, weight=1)
+
+        tree_frame = ctk.CTkFrame(card, fg_color=CARD)
+        tree_frame.pack(fill="both", expand=True, padx=20, pady=20)
+
+        columns = ("id", "title", "message", "type", "status", "created")
+        tree = ttk.Treeview(tree_frame, columns=columns, show="headings")
+        headings = {
+            "id": "ID", "title": "Title", "message": "Message",
+            "type": "Type", "status": "Status", "created": "Date",
+        }
+        widths = {
+            "id": 55, "title": 150, "message": 430,
+            "type": 90, "status": 90, "created": 160,
+        }
+        for col in columns:
+            tree.heading(col, text=headings[col])
+            tree.column(
+                col, width=widths[col],
+                anchor="center" if col in ("id", "type", "status") else "w",
+            )
+
+        scrollbar = ttk.Scrollbar(tree_frame, orient="vertical", command=tree.yview)
+        tree.configure(yscrollcommand=scrollbar.set)
+        tree.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        def load_notifications():
+            for item in tree.get_children():
+                tree.delete(item)
+            connection = connect_database()
+            if connection is None:
+                return
+            cursor = connection.cursor()
+            try:
+                cursor.execute(
+                    """
+                    SELECT notification_id, title, message, notification_type,
+                           CASE WHEN is_read = TRUE THEN 'READ' ELSE 'NEW' END, created_at
+                    FROM notifications
+                    WHERE user_id = %s
+                    ORDER BY created_at DESC
+                    """,
+                    (user_id,),
+                )
+                rows = cursor.fetchall()
+                cursor.execute(
+                    "UPDATE notifications SET is_read = TRUE WHERE user_id = %s",
+                    (user_id,),
+                )
+                connection.commit()
+                for row in rows:
+                    tree.insert("", "end", values=row)
+            except Exception as error:
+                connection.rollback()
+                messagebox.showerror(
+                    "Database Error", f"Unable to load notifications.\n\n{error}",
+                )
+            finally:
+                cursor.close()
+                connection.close()
+
+        load_notifications()
+
+        ctk.CTkButton(
+            content, text="REFRESH", width=130, height=40, corner_radius=10,
+            fg_color=NEUTRAL, hover_color=NEUTRAL_HOVER, command=load_notifications,
+        ).grid(row=2, column=0, sticky="w", pady=(12, 0))
+
+    return_to_login = [False]
+
+    def logout():
+        confirmed = messagebox.askyesno(
+            "Confirm Logout",
+            "Are you sure you want to log out?",
+            icon="question",
+            parent=window,
+        )
+        if not confirmed:
+            return
+        return_to_login[0] = True
+        window.destroy()
+
+    show_home()
+    window.mainloop()
+
+    if return_to_login[0]:
+        from login import open_login
+        open_login()
