@@ -102,3 +102,9 @@ def generate_possible_matches(cursor):
 
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
+
+PRIMARY = "#0B1F3A"
+PRIMARY_LIGHT = "#2563EB"
+PRIMARY_HOVER = "#1D4ED8"
+PRIMARY_SOFT = "#EAF1FF"
+PRIMARY_SOFT_BORDER = "#D6E4FF"
