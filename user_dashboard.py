@@ -99,3 +99,6 @@ def generate_possible_matches(cursor):
                         "MATCH",
                     ),
                 )
+
+ctk.set_appearance_mode("light")
+ctk.set_default_color_theme("blue")
